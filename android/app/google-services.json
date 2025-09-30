@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "960847308061",
+    "project_id": "senha-prefeitura",
+    "storage_bucket": "senha-prefeitura.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:960847308061:android:02a875a3935516af81edf4",
+        "android_client_info": {
+          "package_name": "com.example.senhaprefeitura"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACI8quiJkEsJ_iIx_6W8aeT0WGUGO0bbU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
