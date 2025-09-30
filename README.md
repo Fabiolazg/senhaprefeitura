@@ -1,6 +1,9 @@
 # senhaprefeitura
 
-A new Flutter project.
+Esse app é um projeto para inplantação na Prefeitura Municipal de Itaguaçu, nele é possivel administrar as senhas que são dadas ao público que quer tirar a carteira de Identidade. 
+Nele é possível adicionar senhas (referente as que são entregues na fila), e chamar de acordo com a ordem pré-definida pela prefeitura.
+Ainda está em processo de melhorias e implementação de mais recursos como relatórios diários, semanais e anuais.
+
 
 ## Getting Started
 
