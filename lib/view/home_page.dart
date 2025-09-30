@@ -115,7 +115,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Fila Prefeitura'),
+        title: Text('Fila Prefeitura',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color(0xFF1791d5),
         centerTitle: true,
       ),
       drawer: Drawer(
@@ -123,11 +126,11 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(color: Colors.blue),
+              decoration: const BoxDecoration(color: Color(0xFFF595D4)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.account_circle, size: 64, color: Colors.white),
+                  const Icon(Icons.account_circle, size: 64, color: Colors.blue),
                   const SizedBox(height: 8),
                   Text(widget.userEmail, style: const TextStyle(color: Colors.white)),
                 ],
@@ -155,7 +158,7 @@ class _HomePageState extends State<HomePage> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-          image: AssetImage("assets/fundo.jpg"),
+          image: AssetImage("assets/imagens_flutter/fundo.jpg"),
           fit: BoxFit.cover,
           ),
         ),

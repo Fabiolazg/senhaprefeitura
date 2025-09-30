@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:senhaprefeitura/view/home_page.dart';
 import 'package:senhaprefeitura/view/welcome_page.dart';
 
 
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-        home : const WelcomePage(),
+        home : const HomePage(userEmail: 'zutionfabiola@gmail.com'),
     );
   }
 }
