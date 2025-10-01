@@ -177,8 +177,9 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
                       children: [
                         SizedBox(
                           width: 80,
@@ -204,9 +205,15 @@ class _HomePageState extends State<HomePage> {
                             decoration: const InputDecoration(labelText: "Prioridade"),
                           ),
                         ),
-                        ElevatedButton(
+                        SizedBox(
+                          width : double.infinity,
+                        child: ElevatedButton(
                           onPressed: addTickets,
-                          child: const Text("Adicionar"),
+                          child: const Text("Adicionar",
+                          style: TextStyle(
+                            color: Color(0xFF1791d5)
+                          ),),
+                        ),
                         ),
                       ],
                     ),
@@ -218,7 +225,10 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: callNextTicket,
-                      child: const Text("Chamar próxima ficha"),
+                      child: const Text("Chamar próxima ficha",
+                      style: TextStyle(
+                        color: Color(0xFF1791d5)
+                      ),),
                     ),
                   ],
                 ),
