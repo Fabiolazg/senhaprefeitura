@@ -155,7 +155,8 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: Container(
+      body:  SingleChildScrollView(
+        child: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
           image: AssetImage("assets/imagens_flutter/fundo.jpg"),
@@ -212,7 +213,8 @@ class _HomePageState extends State<HomePage> {
                           child: const Text("Adicionar",
                           style: TextStyle(
                             color: Color(0xFF1791d5)
-                          ),),
+                          ),
+                          ),
                         ),
                         ),
                       ],
@@ -228,15 +230,15 @@ class _HomePageState extends State<HomePage> {
                       child: const Text("Chamar próxima ficha",
                       style: TextStyle(
                         color: Color(0xFF1791d5)
-                      ),),
+                      ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            Expanded(
-              child: Card(
+              Card(
                 elevation: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -248,7 +250,8 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
-                      Expanded(
+                        SizedBox(
+                          height: 200,
                         child: ListView(
                           children: [
                             Text("Prioridade: ${priorityQueue.map((t) => t.number).join(', ')}"),
@@ -261,9 +264,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-            ),
           ],
         ),
+      ),
       ),
       ),
     );
