@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/ticket_model.dart';
 
 class AnalysisPage extends StatefulWidget {
-  final List<Ticket> priorityQueue;
-  final List<Ticket> nmQueue;
-  final List<Ticket> normalQueue;
-
-  const AnalysisPage({
-    super.key,
-    required this.priorityQueue,
-    required this.nmQueue,
-    required this.normalQueue,
-  });
+  const AnalysisPage({super.key});
 
   @override
   State<AnalysisPage> createState() => _AnalysisPageState();
 }
 
-class _AnalysisPageState extends State<AnalysisPage> with SingleTickerProviderStateMixin {
+class _AnalysisPageState extends State<AnalysisPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -32,27 +25,45 @@ class _AnalysisPageState extends State<AnalysisPage> with SingleTickerProviderSt
     super.dispose();
   }
 
-  int getCalledCount(String period) {
-    DateTime now = DateTime.now();
-    List<Ticket> allTickets = [
-      ...widget.priorityQueue,
-      ...widget.nmQueue,
-      ...widget.normalQueue,
-    ];
+  int getCalledCount(List<Ticket> tickets, String period) {
+    final now = DateTime.now();
+
     if (period == 'Diário') {
-      return allTickets.where((t) => t.called && t.calledAt != null && t.calledAt!.day == now.day && t.calledAt!.month == now.month && t.calledAt!.year == now.year).length;
+      return tickets
+          .where((t) =>
+      t.called &&
+          t.calledAt != null &&
+          t.calledAt!.day == now.day &&
+          t.calledAt!.month == now.month &&
+          t.calledAt!.year == now.year)
+          .length;
     } else if (period == 'Semanal') {
       int weekNumber(DateTime date) => ((date.day - 1) / 7).floor() + 1;
-      int currentWeek = weekNumber(now);
-      return allTickets.where((t) => t.called && t.calledAt != null && weekNumber(t.calledAt!) == currentWeek && t.calledAt!.month == now.month && t.calledAt!.year == now.year).length;
+      final currentWeek = weekNumber(now);
+      return tickets
+          .where((t) =>
+      t.called &&
+          t.calledAt != null &&
+          weekNumber(t.calledAt!) == currentWeek &&
+          t.calledAt!.month == now.month &&
+          t.calledAt!.year == now.year)
+          .length;
     } else if (period == 'Mensal') {
-      return allTickets.where((t) => t.called && t.calledAt != null && t.calledAt!.month == now.month && t.calledAt!.year == now.year).length;
+      return tickets
+          .where((t) =>
+      t.called &&
+          t.calledAt != null &&
+          t.calledAt!.month == now.month &&
+          t.calledAt!.year == now.year)
+          .length;
     }
     return 0;
   }
 
   @override
   Widget build(BuildContext context) {
+    final firestore = FirebaseFirestore.instance;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Análises'),
@@ -65,18 +76,44 @@ class _AnalysisPageState extends State<AnalysisPage> with SingleTickerProviderSt
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          buildAnalysisCard('Diário'),
-          buildAnalysisCard('Semanal'),
-          buildAnalysisCard('Mensal'),
-        ],
+      body: StreamBuilder<QuerySnapshot>(
+        stream: firestore.collection('tickets').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Erro: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Mapeia os documentos para objetos Ticket
+          List<Ticket> allTickets = snapshot.data!.docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return Ticket(
+              id: doc.id,
+              type: data['type'] ?? 'Normal',
+              number: (data['number'] ?? 0).toInt(),
+              called: data['called'] ?? false,
+              calledAt: (data['calledAt'] as Timestamp?)?.toDate(),
+            );
+          }).toList();
+
+          return TabBarView(
+            controller: _tabController,
+            children: [
+              buildAnalysisCard(allTickets, 'Diário'),
+              buildAnalysisCard(allTickets, 'Semanal'),
+              buildAnalysisCard(allTickets, 'Mensal'),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget buildAnalysisCard(String period) {
+  Widget buildAnalysisCard(List<Ticket> tickets, String period) {
+    final count = getCalledCount(tickets, period);
     return Center(
       child: Card(
         elevation: 4,
@@ -88,10 +125,14 @@ class _AnalysisPageState extends State<AnalysisPage> with SingleTickerProviderSt
             children: [
               Text(
                 period,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              Text('Total de fichas chamadas: ${getCalledCount(period)}', style: const TextStyle(fontSize: 18)),
+              Text(
+                'Total de fichas chamadas: $count',
+                style: const TextStyle(fontSize: 18),
+              ),
             ],
           ),
         ),
