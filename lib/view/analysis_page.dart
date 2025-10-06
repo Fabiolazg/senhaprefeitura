@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:senhaprefeitura/models/ticket_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/ticket_model.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class AnalysisPage extends StatefulWidget {
   const AnalysisPage({super.key});
@@ -9,133 +10,206 @@ class AnalysisPage extends StatefulWidget {
   State<AnalysisPage> createState() => _AnalysisPageState();
 }
 
-class _AnalysisPageState extends State<AnalysisPage>
-    with SingleTickerProviderStateMixin {
+class _AnalysisPageState extends State<AnalysisPage> with SingleTickerProviderStateMixin {
+  List<Ticket> allTickets = [];
+  bool isLoading = true;
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    fetchTickets();
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  int getCalledCount(List<Ticket> tickets, String period) {
-    final now = DateTime.now();
-
-    if (period == 'Diário') {
-      return tickets
-          .where((t) =>
-      t.called &&
-          t.calledAt != null &&
-          t.calledAt!.day == now.day &&
-          t.calledAt!.month == now.month &&
-          t.calledAt!.year == now.year)
-          .length;
-    } else if (period == 'Semanal') {
-      int weekNumber(DateTime date) => ((date.day - 1) / 7).floor() + 1;
-      final currentWeek = weekNumber(now);
-      return tickets
-          .where((t) =>
-      t.called &&
-          t.calledAt != null &&
-          weekNumber(t.calledAt!) == currentWeek &&
-          t.calledAt!.month == now.month &&
-          t.calledAt!.year == now.year)
-          .length;
-    } else if (period == 'Mensal') {
-      return tickets
-          .where((t) =>
-      t.called &&
-          t.calledAt != null &&
-          t.calledAt!.month == now.month &&
-          t.calledAt!.year == now.year)
-          .length;
-    }
-    return 0;
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Future<void> fetchTickets() async {
     final firestore = FirebaseFirestore.instance;
+    final snapshot = await firestore.collection('tickets').get();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Análises'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Diário'),
-            Tab(text: 'Semanal'),
-            Tab(text: 'Mensal'),
-          ],
-        ),
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: firestore.collection('tickets').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Erro: ${snapshot.error}'));
-          }
+    allTickets = snapshot.docs.map((doc) {
+      final data = doc.data();
+      return Ticket(
+        id: doc.id,
+        type: data['type'] ?? '',
+        number: data['number'] ?? 0,
+        called: data['called'] ?? false,
+        calledAt: (data['calledAt'] as Timestamp?)?.toDate(),
+      );
+    }).toList();
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    setState(() {
+      isLoading = false;
+    });
+  }
 
-          // Mapeia os documentos para objetos Ticket
-          List<Ticket> allTickets = snapshot.data!.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return Ticket(
-              id: doc.id,
-              type: data['type'] ?? 'Normal',
-              number: (data['number'] ?? 0).toInt(),
-              called: data['called'] ?? false,
-              calledAt: (data['calledAt'] as Timestamp?)?.toDate(),
-            );
-          }).toList();
+  int getTodayCount(List<Ticket> tickets) {
+    final now = DateTime.now();
+    return tickets.where((t) => t.calledAt != null && t.calledAt!.year == now.year && t.calledAt!.month == now.month && t.calledAt!.day == now.day).length;
+  }
 
-          return TabBarView(
-            controller: _tabController,
+  int getWeekCount(List<Ticket> tickets) {
+    final now = DateTime.now();
+    int currentWeek = weekNumber(now);
+    return tickets.where((t) => t.calledAt != null && t.calledAt!.year == now.year && t.calledAt!.month == now.month && weekNumber(t.calledAt!) == currentWeek).length;
+  }
+
+  int getMonthCount(List<Ticket> tickets) {
+    final now = DateTime.now();
+    return tickets.where((t) => t.calledAt != null && t.calledAt!.year == now.year && t.calledAt!.month == now.month).length;
+  }
+
+  int weekNumber(DateTime date) {
+    final firstDayOfYear = DateTime(date.year, 1, 1);
+    final diff = date.difference(firstDayOfYear);
+    return ((diff.inDays + firstDayOfYear.weekday) / 7).ceil();
+  }
+
+  Widget _buildTabContent(List<Ticket> tickets) {
+    final total = tickets.length;
+    final nm = tickets.where((t) => t.type == 'NM').length;
+    final normal = tickets.where((t) => t.type == 'Normal').length;
+    final prioridade = tickets.where((t) => t.type == 'Prioridade').length;
+
+    const cardMargin = EdgeInsets.symmetric(vertical: 8.0);
+    const cardWidth = double.infinity;
+    const cardHeight = 80.0;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Total card
+          Card(
+            color: const Color(0xFFB0B0B0), // cinza
+            margin: cardMargin,
+            child: SizedBox(
+              width: cardWidth,
+              height: cardHeight,
+              child: Center(
+                child: Text(
+                  'Total de atendimentos: $total',
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Row de cards por tipo
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              buildAnalysisCard(allTickets, 'Diário'),
-              buildAnalysisCard(allTickets, 'Semanal'),
-              buildAnalysisCard(allTickets, 'Mensal'),
+              Expanded(
+                child: Card(
+                  color: const Color(0xFFF595D4),
+                  margin: cardMargin,
+                  child: SizedBox(
+                    height: cardHeight,
+                    child: Center(
+                      child: Text(
+                        'NM: $nm',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Card(
+                  color: const Color(0xFF1791d5),
+                  margin: cardMargin,
+                  child: SizedBox(
+                    height: cardHeight,
+                    child: Center(
+                      child: Text(
+                        'Normal: $normal',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Card(
+                  color: const Color(0xFFB0B0B0),
+                  margin: cardMargin,
+                  child: SizedBox(
+                    height: cardHeight,
+                    child: Center(
+                      child: Text(
+                        'Prioridade: $prioridade',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
-          );
-        },
+          ),
+          const SizedBox(height: 24),
+          // Gráfico de pizza
+          AspectRatio(
+            aspectRatio: 1.3,
+            child: PieChart(
+              PieChartData(
+                sections: [
+                  PieChartSectionData(
+                    value: nm.toDouble(),
+                    color: const Color(0xFFF595D4),
+                    title: 'NM: $nm',
+                    radius: 50,
+                    titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  PieChartSectionData(
+                    value: normal.toDouble(),
+                    color: const Color(0xFF1791d5),
+                    title: 'Normal: $normal',
+                    radius: 50,
+                    titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  PieChartSectionData(
+                    value: prioridade.toDouble(),
+                    color: const Color(0xFFB0B0B0),
+                    title: 'Prioridade: $prioridade',
+                    radius: 50,
+                    titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ],
+                sectionsSpace: 2,
+                centerSpaceRadius: 40,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget buildAnalysisCard(List<Ticket> tickets, String period) {
-    final count = getCalledCount(tickets, period);
-    return Center(
-      child: Card(
-        elevation: 4,
-        margin: const EdgeInsets.all(16),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                period,
-                style: const TextStyle(
-                    fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Total de fichas chamadas: $count',
-                style: const TextStyle(fontSize: 18),
-              ),
-            ],
-          ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Análises de Atendimentos'),
+        backgroundColor: const Color(0xFF1791d5),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Hoje'),
+            Tab(text: 'Semana'),
+            Tab(text: 'Mês'),
+          ],
         ),
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
+        controller: _tabController,
+        children: [
+          _buildTabContent(allTickets.where((t) => t.calledAt != null && t.calledAt!.day == DateTime.now().day && t.calledAt!.month == DateTime.now().month && t.calledAt!.year == DateTime.now().year).toList()),
+          _buildTabContent(allTickets.where((t) => t.calledAt != null && weekNumber(t.calledAt!) == weekNumber(DateTime.now()) && t.calledAt!.month == DateTime.now().month && t.calledAt!.year == DateTime.now().year).toList()),
+          _buildTabContent(allTickets.where((t) => t.calledAt != null && t.calledAt!.month == DateTime.now().month && t.calledAt!.year == DateTime.now().year).toList()),
+        ],
       ),
     );
   }

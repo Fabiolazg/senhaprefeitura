@@ -25,6 +25,9 @@ class _HomePageState extends State<HomePage> {
   bool lastWasPriority = false;
   String _nextTicket = "Nenhuma ficha na fila";
 
+  // Variáveis para animação do card da próxima ficha
+  Color _nextTicketColor = Colors.white;
+
   int normalCounter = 0;
   int nmCounter = 0;
   int priorityCounter = 0;
@@ -46,8 +49,8 @@ class _HomePageState extends State<HomePage> {
         'called': false,
         'calledAt': null,
       });
-      final ticket = Ticket(
-          id: docRef.id, type: 'Prioridade', number: priorityCounter);
+      final ticket =
+      Ticket(id: docRef.id, type: 'Prioridade', number: priorityCounter);
       priorityQueue.add(ticket);
     }
 
@@ -73,7 +76,8 @@ class _HomePageState extends State<HomePage> {
         'called': false,
         'calledAt': null,
       });
-      final ticket = Ticket(id: docRef.id, type: 'Normal', number: normalCounter);
+      final ticket =
+      Ticket(id: docRef.id, type: 'Normal', number: normalCounter);
       normalQueue.add(ticket);
     }
 
@@ -84,7 +88,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
-  /// Chama a próxima ficha e atualiza no Firestore
+  /// Chama a próxima ficha e atualiza no Firestore com animação
   void callNextTicket() async {
     Ticket? next;
 
@@ -124,11 +128,20 @@ class _HomePageState extends State<HomePage> {
       });
 
       setState(() {
-        _nextTicket = "${next!.type} #${next.number}";
+        _nextTicket = "${next!.type} #${next!.number}";
+        _nextTicketColor = const Color(0xFFF595D4); // fundo rosa do app
+      });
+
+      // Volta para branco após 1 segundo
+      Future.delayed(const Duration(seconds: 1), () {
+        setState(() {
+          _nextTicketColor = Colors.white;
+        });
       });
     } else {
       setState(() {
         _nextTicket = "Nenhuma ficha na fila";
+        _nextTicketColor = Colors.white;
       });
     }
   }
@@ -250,10 +263,22 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          "Próxima ficha: $_nextTicket",
-                          style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                        // Card animado da próxima ficha
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: _nextTicketColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Próxima ficha: $_nextTicket",
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 12),
                         ElevatedButton(
@@ -285,9 +310,12 @@ class _HomePageState extends State<HomePage> {
                           height: 200,
                           child: ListView(
                             children: [
-                              Text("Prioridade: ${priorityQueue.map((t) => t.number).join(', ')}"),
-                              Text("NM: ${nmQueue.map((t) => t.number).join(', ')}"),
-                              Text("Normal: ${normalQueue.map((t) => t.number).join(', ')}"),
+                              Text(
+                                  "Prioridade: ${priorityQueue.map((t) => t.number).join(', ')}"),
+                              Text(
+                                  "NM: ${nmQueue.map((t) => t.number).join(', ')}"),
+                              Text(
+                                  "Normal: ${normalQueue.map((t) => t.number).join(', ')}"),
                             ],
                           ),
                         ),
