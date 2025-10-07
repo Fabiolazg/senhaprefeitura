@@ -91,45 +91,61 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   /// Chama a próxima ficha e atualiza no Firestore
   void callNextTicket() async {
-    Ticket? next;
+    final firestore = FirebaseFirestore.instance;
 
-    if (priorityQueue.isNotEmpty && !lastWasPriority) {
-      next = priorityQueue.removeAt(0);
+    // busca todas as fichas não chamadas
+    final snapshot = await firestore
+        .collection('tickets')
+        .where('called', isEqualTo: false)
+        .get();
+
+    if (snapshot.docs.isEmpty) {
+      setState(() {
+        _nextTicket = "Nenhuma ficha na fila";
+      });
+      return;
+    }
+
+    final docs = snapshot.docs;
+    final priorityDocs = docs.where((d) => d['type'] == 'Prioridade').toList();
+    final nmDocs = docs.where((d) => d['type'] == 'NM').toList();
+    final normalDocs = docs.where((d) => d['type'] == 'Normal').toList();
+
+    DocumentSnapshot? next;
+
+    if (priorityDocs.isNotEmpty && !lastWasPriority) {
+      next = priorityDocs.first;
       lastWasPriority = true;
-    } else if ((nmQueue.isNotEmpty || normalQueue.isNotEmpty)) {
-      if (nmQueue.isNotEmpty && normalQueue.isNotEmpty) {
+    } else if ((nmDocs.isNotEmpty || normalDocs.isNotEmpty)) {
+      if (nmDocs.isNotEmpty && normalDocs.isNotEmpty) {
         if (lastWasNM) {
-          next = normalQueue.removeAt(0);
+          next = normalDocs.first;
           lastWasNM = false;
         } else {
-          next = nmQueue.removeAt(0);
+          next = nmDocs.first;
           lastWasNM = true;
         }
-      } else if (nmQueue.isNotEmpty) {
-        next = nmQueue.removeAt(0);
+      } else if (nmDocs.isNotEmpty) {
+        next = nmDocs.first;
         lastWasNM = true;
-      } else if (normalQueue.isNotEmpty) {
-        next = normalQueue.removeAt(0);
+      } else if (normalDocs.isNotEmpty) {
+        next = normalDocs.first;
         lastWasNM = false;
       }
       lastWasPriority = false;
-    } else if (priorityQueue.isNotEmpty) {
-      next = priorityQueue.removeAt(0);
+    } else if (priorityDocs.isNotEmpty) {
+      next = priorityDocs.first;
       lastWasPriority = true;
     }
 
     if (next != null) {
-      next.called = true;
-      next.calledAt = DateTime.now();
-
-      final firestore = FirebaseFirestore.instance;
       await firestore.collection('tickets').doc(next.id).update({
         'called': true,
         'calledAt': FieldValue.serverTimestamp(),
       });
 
       setState(() {
-        _nextTicket = "${next!.type} #${next.number}";
+        _nextTicket = "${next!['type']} #${next['number']}";
         _recentCalls.insert(0, _nextTicket);
         if (_recentCalls.length > 3) _recentCalls.removeLast();
         _fadeOpacity = 0.0;
@@ -139,10 +155,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         setState(() {
           _fadeOpacity = 1.0;
         });
-      });
-    } else {
-      setState(() {
-        _nextTicket = "Nenhuma ficha na fila";
       });
     }
   }
@@ -205,7 +217,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ),
       ),
       body: SingleChildScrollView(
-        child: Container(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height,
+          ),
+          child:Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
               image: AssetImage("assets/imagens_flutter/fundo.jpg"),
@@ -323,22 +339,34 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       children: [
                         const Text(
                           "Filas Atuais",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        SizedBox(
-                          height: 200,
-                          child: ListView(
-                            children: [
-                              Text(
-                                  "Prioridade: ${priorityQueue.map((t) => t.number).join(', ')}"),
-                              Text(
-                                  "NM: ${nmQueue.map((t) => t.number).join(', ')}"),
-                              Text(
-                                  "Normal: ${normalQueue.map((t) => t.number).join(', ')}"),
-                            ],
-                          ),
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('tickets')
+                              .where('called', isEqualTo: false)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(child: CircularProgressIndicator());
+                            }
+
+                            final docs = snapshot.data!.docs;
+
+                            final priority = docs.where((d) => d['type'] == 'Prioridade').toList();
+                            final nm = docs.where((d) => d['type'] == 'NM').toList();
+                            final normal = docs.where((d) => d['type'] == 'Normal').toList();
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Prioridade: ${priority.map((d) => d['number']).join(', ')}"),
+                                Text("NM: ${nm.map((d) => d['number']).join(', ')}"),
+                                Text("Normal: ${normal.map((d) => d['number']).join(', ')}"),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -348,6 +376,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
           ),
         ),
+      ),
       ),
     );
   }
