@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:senhaprefeitura/view/analysis_page.dart';
 import 'package:senhaprefeitura/models/ticket_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomePage extends StatefulWidget {
   final String userEmail;
@@ -12,7 +13,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   final TextEditingController normalController = TextEditingController();
   final TextEditingController nmController = TextEditingController();
   final TextEditingController priorityController = TextEditingController();
@@ -20,17 +21,17 @@ class _HomePageState extends State<HomePage> {
   List<Ticket> normalQueue = [];
   List<Ticket> nmQueue = [];
   List<Ticket> priorityQueue = [];
+  List<String> _recentCalls = [];
 
   bool lastWasNM = false;
   bool lastWasPriority = false;
   String _nextTicket = "Nenhuma ficha na fila";
 
-  // Variáveis para animação do card da próxima ficha
-  Color _nextTicketColor = Colors.white;
-
   int normalCounter = 0;
   int nmCounter = 0;
   int priorityCounter = 0;
+
+  double _fadeOpacity = 1.0;
 
   /// Adiciona fichas e grava no Firestore
   void addTickets() async {
@@ -88,7 +89,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
-  /// Chama a próxima ficha e atualiza no Firestore com animação
+  /// Chama a próxima ficha e atualiza no Firestore
   void callNextTicket() async {
     Ticket? next;
 
@@ -128,20 +129,20 @@ class _HomePageState extends State<HomePage> {
       });
 
       setState(() {
-        _nextTicket = "${next!.type} #${next!.number}";
-        _nextTicketColor = const Color(0xFFF595D4); // fundo rosa do app
+        _nextTicket = "${next!.type} #${next.number}";
+        _recentCalls.insert(0, _nextTicket);
+        if (_recentCalls.length > 3) _recentCalls.removeLast();
+        _fadeOpacity = 0.0;
       });
 
-      // Volta para branco após 1 segundo
-      Future.delayed(const Duration(seconds: 1), () {
+      Future.delayed(const Duration(milliseconds: 100), () {
         setState(() {
-          _nextTicketColor = Colors.white;
+          _fadeOpacity = 1.0;
         });
       });
     } else {
       setState(() {
         _nextTicket = "Nenhuma ficha na fila";
-        _nextTicketColor = Colors.white;
       });
     }
   }
@@ -158,9 +159,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Fila Prefeitura',
-          style: TextStyle(color: Colors.white),
+          style: GoogleFonts.oswald(
+            fontSize: 22,
+            color: Colors.white
+          ),
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
         ),
         backgroundColor: const Color(0xFF1791d5),
         centerTitle: true,
@@ -183,8 +190,10 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.bar_chart),
-              title: const Text('Análises'),
+              leading: const Icon(Icons.bar_chart, color: Color(0xFF1791d5),),
+              title: Text(
+                  'Análises',
+                  style: GoogleFonts.oswald(color: Color(0xFF1791d5),)),
               onTap: () {
                 Navigator.push(
                     context,
@@ -263,21 +272,33 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        // Card animado da próxima ficha
-                        AnimatedContainer(
+                        AnimatedOpacity(
+                          opacity: _fadeOpacity,
                           duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInOut,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: _nextTicketColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Próxima ficha: $_nextTicket",
-                              style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
+                          child: Column(
+                            children: [
+                              Text(
+                                "Próxima ficha: $_nextTicket",
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                              if (_recentCalls.isNotEmpty) ...[
+                                const Text(
+                                  "Últimas chamadas:",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1791d5)),
+                                ),
+                                const SizedBox(height: 4),
+                                for (var call in _recentCalls)
+                                  Text(
+                                    call,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                              ],
+                            ],
                           ),
                         ),
                         const SizedBox(height: 12),
