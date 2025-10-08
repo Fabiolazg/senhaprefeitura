@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       appBar: AppBar(
         title: Text(
           'Fila Prefeitura',
-          style: GoogleFonts.oswald(
+          style: GoogleFonts.lexend(
             fontSize: 22,
             color: Colors.white
           ),
@@ -205,7 +205,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               leading: const Icon(Icons.bar_chart, color: Color(0xFF1791d5),),
               title: Text(
                   'Análises',
-                  style: GoogleFonts.oswald(color: Color(0xFF1791d5),)),
+                  style: GoogleFonts.lexend(color: Color(0xFF1791d5),)),
               onTap: () {
                 Navigator.push(
                     context,
@@ -238,9 +238,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        const Text(
+                          Text(
                           "Adicionar Fichas",
-                          style: TextStyle(
+                          style: GoogleFonts.lexend(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
@@ -279,9 +279,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: addTickets,
-                                child: const Text(
+                                child: Text(
                                   "Adicionar",
-                                  style: TextStyle(color: Color(0xFF1791d5)),
+                                  style: GoogleFonts.lexend(color: Color(0xFF1791d5)),
                                 ),
                               ),
                             ),
@@ -295,14 +295,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                             children: [
                               Text(
                                 "Próxima ficha: $_nextTicket",
-                                style: const TextStyle(
+                                style: GoogleFonts.lexend(
                                     fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 8),
                               if (_recentCalls.isNotEmpty) ...[
-                                const Text(
+                                 Text(
                                   "Últimas chamadas:",
-                                  style: TextStyle(
+                                  style: GoogleFonts.lexend(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                       color: Color(0xFF1791d5)),
@@ -320,9 +320,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         const SizedBox(height: 12),
                         ElevatedButton(
                           onPressed: callNextTicket,
-                          child: const Text(
+                          child: Text(
                             "Chamar próxima ficha",
-                            style: TextStyle(color: Color(0xFF1791d5)),
+                            style: GoogleFonts.lexend(color: Color(0xFF1791d5)),
                           ),
                         ),
                       ],
@@ -337,9 +337,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           "Filas Atuais",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.lexend(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
                         StreamBuilder<QuerySnapshot>(

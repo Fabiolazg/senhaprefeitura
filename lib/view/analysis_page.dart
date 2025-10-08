@@ -175,7 +175,7 @@ class _AnalysisPageState extends State<AnalysisPage>
               final display = (total * t).round();
               return Text(
                 'Total de atendimentos: $display',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: GoogleFonts.lexend(fontSize: 20, fontWeight: FontWeight.bold),
               );
             },
           ),
@@ -193,7 +193,7 @@ class _AnalysisPageState extends State<AnalysisPage>
         color: Colors.grey.shade300,
         title: '0',
         radius: 50,
-        titleStyle: const TextStyle(color: Colors.black),
+        titleStyle: GoogleFonts.lexend(color: Colors.black),
       ));
     } else {
       if (nm > 0) {
@@ -202,7 +202,7 @@ class _AnalysisPageState extends State<AnalysisPage>
           color: _rose,
           title: '$nm',
           radius: 50,
-          titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+          titleStyle: GoogleFonts.lexend(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
         ));
       }
       if (normal > 0) {
@@ -211,7 +211,7 @@ class _AnalysisPageState extends State<AnalysisPage>
           color: _blue,
           title: '$normal',
           radius: 50,
-          titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+          titleStyle: GoogleFonts.lexend(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
         ));
       }
       if (priority > 0) {
@@ -220,7 +220,7 @@ class _AnalysisPageState extends State<AnalysisPage>
           color: _gray,
           title: '$priority',
           radius: 50,
-          titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+          titleStyle: GoogleFonts.lexend(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
         ));
       }
     }
@@ -277,15 +277,15 @@ class _AnalysisPageState extends State<AnalysisPage>
                   children: [
                     Text(
                       'Resumo — $title',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Text('NM: $nm'),
-                        Text('Normal: $normal'),
-                        Text('Prioridade: $priority'),
+                        Text('NM: $nm', style: GoogleFonts.lexend(),),
+                        Text('Normal: $normal', style: GoogleFonts.lexend()),
+                        Text('Prioridade: $priority', style: GoogleFonts.lexend()),
                       ],
                     )
                   ],
@@ -320,7 +320,7 @@ class _AnalysisPageState extends State<AnalysisPage>
     return Scaffold(
       appBar: AppBar(
         title: Text('Análises de Atendimentos',
-          style: GoogleFonts.oswald( color: Colors.white)),
+          style: GoogleFonts.lexend( color: Colors.white, fontSize: 20)),
         backgroundColor: _blue,
         iconTheme: const IconThemeData(
           color: Colors.white,
@@ -337,9 +337,18 @@ class _AnalysisPageState extends State<AnalysisPage>
           indicatorColor: _rose,
           labelColor: _rose,
           unselectedLabelColor: Colors.white,
+          labelStyle: GoogleFonts.lexend(fontSize: 15),
+          unselectedLabelStyle: GoogleFonts.lexend(fontSize: 13),
         ),
       ),
-      body: _loading
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/imagens_flutter/fundo2.jpg"),
+            fit: BoxFit.cover,
+          ),
+      ),
+      child: _loading
           ? const Center(child: CircularProgressIndicator())
           : TabBarView(
         controller: _tabController,
@@ -351,6 +360,7 @@ class _AnalysisPageState extends State<AnalysisPage>
           // Mês
           _buildTabBody(_ticketsThisMonth(), 'Mês'),
         ],
+      ),
       ),
     );
   }
