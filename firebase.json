@@ -1,1 +1,65 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"senha-prefeitura","appId":"1:960847308061:android:02a875a3935516af81edf4","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"senha-prefeitura","configurations":{"android":"1:960847308061:android:02a875a3935516af81edf4","ios":"1:960847308061:ios:1a8a8c498c46bbda81edf4","macos":"1:960847308061:ios:1a8a8c498c46bbda81edf4","web":"1:960847308061:web:e7324c0b953d6a9a81edf4","windows":"1:960847308061:web:af8adb692122553681edf4"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "senha-prefeitura",
+          "appId": "1:960847308061:android:02a875a3935516af81edf4",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "senha-prefeitura",
+          "configurations": {
+            "android": "1:960847308061:android:02a875a3935516af81edf4",
+            "ios": "1:960847308061:ios:1a8a8c498c46bbda81edf4",
+            "macos": "1:960847308061:ios:1a8a8c498c46bbda81edf4",
+            "web": "1:960847308061:web:e7324c0b953d6a9a81edf4",
+            "windows": "1:960847308061:web:af8adb692122553681edf4"
+          }
+        }
+      }
+    }
+  },
+  "emulators": {
+    "dataconnect": {
+      "dataDir": "dataconnect/.dataconnect/pgliteData",
+      "port": 9399
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  },
+  "dataconnect": {
+    "source": "dataconnect"
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "extensions": {},
+  "database": {
+    "rules": "database.rules.json"
+  }
+}

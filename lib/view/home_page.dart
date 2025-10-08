@@ -97,6 +97,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final snapshot = await firestore
         .collection('tickets')
         .where('called', isEqualTo: false)
+        .orderBy('number')
         .get();
 
     if (snapshot.docs.isEmpty) {
